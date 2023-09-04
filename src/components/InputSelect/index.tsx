@@ -1,5 +1,5 @@
 import Downshift from "downshift"
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import classNames from "classnames"
 import { DropdownPosition, GetDropdownPositionFn, InputSelectOnChange, InputSelectProps } from "./types"
 
@@ -17,6 +17,7 @@ export function InputSelect<TItem>({
     top: 0,
     left: 0,
   })
+  const labelRef = useRef(null);
 
   const onChange = useCallback<InputSelectOnChange<TItem>>(
     (selectedItem) => {
@@ -28,7 +29,12 @@ export function InputSelect<TItem>({
       setSelectedValue(selectedItem)
     },
     [consumerOnChange]
-  )
+  );
+
+  document.addEventListener('scroll', e => {
+    const { top, left } = getDropdownPosition(labelRef.current);
+    setDropdownPosition({ top, left })
+  });
 
   return (
     <Downshift<TItem>
@@ -62,6 +68,7 @@ export function InputSelect<TItem>({
                 setDropdownPosition(getDropdownPosition(event.target))
                 toggleProps.onClick(event)
               }}
+              ref={labelRef}
             >
               {inputValue}
             </div>
@@ -71,7 +78,7 @@ export function InputSelect<TItem>({
                 "RampInputSelect--dropdown-container-opened": isOpen,
               })}
               {...getMenuProps()}
-              style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+              style={{ top: dropdownPosition.top , left: dropdownPosition.left }}
             >
               {renderItems()}
             </div>
@@ -120,9 +127,8 @@ export function InputSelect<TItem>({
 const getDropdownPosition: GetDropdownPositionFn = (target) => {
   if (target instanceof Element) {
     const { top, left } = target.getBoundingClientRect()
-    const { scrollY } = window
     return {
-      top: scrollY + top + 63,
+      top: top + 63,
       left,
     }
   }
